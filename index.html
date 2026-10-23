@@ -1,0 +1,852 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="우리집 가계부">
+<meta name="theme-color" content="#F4F7FC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141925" media="(prefers-color-scheme: dark)">
+<title>우리집 가계부</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐷</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --bg:#F4F7FC; --card:#FFFFFF; --ink:#22315A; --muted:#7A86A3; --line:#E4EAF4; --soft:#EEF2FA;
+  --c-p1:#FF8FA3; --c-p2:#5FAEF7; --c-both:#A98BF5; --c-save:#2FBF95; --c-loan:#4058AC; --c-etc:#F5B83D; --c-none:#D3DAE7;
+  --warn:#E5534B; --good:#1F9F7A;
+  --shadow:0 1px 0 rgba(34,49,90,.04), 0 8px 20px -12px rgba(34,49,90,.28);
+  --font:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --cute:'Jua','Pretendard Variable',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#141925; --card:#1C2333; --ink:#E8EDF7; --muted:#97A2BC; --line:#2A3347; --soft:#252D40;
+  --c-p1:#FF9DB0; --c-p2:#79BCFA; --c-both:#B8A0FA; --c-save:#4AD1AA; --c-loan:#8EA2EE; --c-etc:#F7C55E; --c-none:#3A445A;
+  --warn:#FF7A72; --good:#4AD1AA; --shadow:none; color-scheme:dark;
+}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--c-p2);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.warn{color:var(--warn)}
+[hidden]{display:none!important}
+
+.app{max-width:560px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 6px) 16px calc(env(safe-area-inset-bottom,0px) + 100px)}
+.top{display:flex;align-items:center;gap:4px;padding:6px 0 12px}
+.month{display:flex;align-items:center;gap:2px;flex:1;min-width:0}
+.month h1{font-family:var(--cute);font-weight:400;font-size:24px;margin:0 2px;white-space:nowrap}
+.icon-btn{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--muted);font-size:22px;flex:none}
+.icon-btn:active{background:var(--soft)}
+.today-btn{font-size:12px;padding:4px 10px;border-radius:99px;background:var(--soft);color:var(--muted);font-weight:600;margin-left:4px}
+.spin{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.card{background:var(--card);border-radius:22px;padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px}
+.card-h h2{font-family:var(--cute);font-weight:400;font-size:19px;margin:0}
+.card-h .side{font-size:13px;color:var(--muted)}
+.link{color:var(--c-p2);font-weight:700;font-size:14px;padding:6px 2px}
+.empty{text-align:center;color:var(--muted);padding:16px 8px;font-size:14px;margin:0}
+.empty b{display:block;font-size:34px;font-weight:400;margin-bottom:4px}
+
+.hero{padding:22px 20px 20px}
+.hero-k{margin:0;font-size:14px;font-weight:600}
+.hero-k span{font-weight:400}
+.hero-n{margin:2px 0 4px;font-family:var(--cute);font-size:40px;line-height:1.15}
+.hero-sub{margin:0 0 14px;font-size:14px}
+.hero-sub b{color:var(--c-save)}
+.stack{display:flex;height:14px;border-radius:99px;overflow:hidden;background:var(--soft);gap:2px}
+.stack i{display:block;height:100%;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:10px;font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+
+.list > .row + .row{border-top:1px solid var(--line)}
+.row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 2px}
+.ico{width:40px;height:40px;border-radius:13px;background:var(--soft);display:grid;place-items:center;font-size:21px;flex:none}
+.mid{flex:1;min-width:0;display:flex;flex-direction:column}
+.mid b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mid small{color:var(--muted);font-size:12.5px}
+.amt{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{font-style:normal;font-size:11px;padding:1px 7px;border-radius:99px;background:color-mix(in srgb,var(--c-etc) 28%,transparent);color:var(--ink);margin-left:6px;font-weight:600}
+
+.env-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.env{position:relative;overflow:hidden;border-radius:18px;background:var(--soft);padding:14px 14px 12px;text-align:left;display:flex;flex-direction:column;min-height:136px;isolation:isolate}
+.env::before{content:"";position:absolute;left:0;right:0;bottom:0;height:var(--fill,0%);background:color-mix(in srgb,var(--c) 32%,transparent);z-index:-1;transition:height .8s cubic-bezier(.2,.8,.2,1)}
+.env-emo{font-size:32px;line-height:1}
+.env-name{margin-top:8px;font-size:13px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.env-amt{font-family:var(--cute);font-size:21px;margin-top:auto}
+.env-goal{font-size:11.5px;color:var(--muted)}
+.env.full .env-goal{color:var(--good);font-weight:700}
+.env.add{align-items:center;justify-content:center;color:var(--muted);border:2px dashed var(--line);background:none;font-size:13px;font-weight:600;gap:2px}
+.env.add b{font-size:26px;font-weight:400;line-height:1}
+.coin{position:absolute;left:50%;top:-34px;font-size:28px;pointer-events:none;z-index:2;animation:drop .85s cubic-bezier(.45,0,.8,.3) forwards}
+@keyframes drop{0%{transform:translate(-50%,0) rotate(0)}75%{transform:translate(-50%,118px) rotate(220deg);opacity:1}100%{transform:translate(-50%,128px) scale(.3);opacity:0}}
+.bump{animation:bump .5s ease .45s}
+@keyframes bump{40%{transform:scale(1.045)}}
+
+.loan{display:flex;gap:12px;align-items:flex-start;padding:12px 0}
+.loan + .loan{border-top:1px solid var(--line)}
+.check{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center;margin-top:2px;color:transparent;transition:background .2s,border-color .2s}
+.check svg{width:16px;height:16px}
+.check:disabled{opacity:.4}
+.loan.paid .check{background:var(--c-save);border-color:var(--c-save);color:#fff}
+.loan.just .check{animation:pop .4s ease}
+@keyframes pop{50%{transform:scale(1.3)}}
+.loan-body{flex:1;text-align:left;min-width:0}
+.loan-top{display:flex;justify-content:space-between;gap:8px}
+.loan-top b:first-child{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.loan.paid .loan-top b:first-child{color:var(--muted);text-decoration:line-through}
+.loan-meta{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted);margin:2px 0 7px}
+.loan-meta b{color:var(--ink)}
+.pbar{display:block;height:7px;border-radius:99px;background:var(--soft);overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--c-loan);border-radius:99px;transition:width .6s}
+.note{font-size:13.5px;padding:10px 12px;border-radius:12px;background:var(--soft);margin:12px 0 0}
+.note.bad{background:color-mix(in srgb,var(--warn) 13%,transparent)}
+.sum-line{margin:-4px 0 4px;font-size:13.5px;color:var(--muted)}
+.sum-line b{color:var(--ink)}
+
+.who-tabs{margin-bottom:14px}
+.wallet{display:flex;gap:14px;align-items:center}
+.wallet-emo{font-size:40px;line-height:1;width:64px;height:64px;border-radius:20px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 24%,transparent);flex:none}
+.wallet-n{font-family:var(--cute);font-size:30px;line-height:1.2}
+.bar{height:10px;background:var(--soft);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;transition:width .5s}
+.day{font-size:12.5px;color:var(--muted);font-weight:700;margin:14px 2px 2px;display:flex;justify-content:space-between}
+.day:first-child{margin-top:0}
+
+.diag-hero{display:flex;gap:16px;align-items:center}
+.mascot{font-size:56px;line-height:1;animation:float 3s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-5px)}}
+.diag-title{font-family:var(--cute);font-size:22px;margin:2px 0}
+.donut-wrap{display:flex;gap:14px;align-items:center}
+.donut{width:140px;height:140px;flex:none}
+.d-c{font-family:var(--cute);font-size:22px;fill:var(--ink)}
+.d-s{font-size:10px;fill:var(--muted)}
+.dl{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;font-size:13px}
+.dl div{display:flex;align-items:center;gap:6px}
+.dl span:nth-child(2){flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tips{display:flex;flex-direction:column;gap:8px}
+.tip{display:flex;gap:10px;padding:12px 14px;border-radius:16px;background:var(--soft);font-size:14px;line-height:1.55}
+.tip-e{font-size:22px;line-height:1.2;flex:none}
+.bar-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-size:13px;margin:9px 0}
+.bar-row .bar{height:12px}
+.cols{display:flex;align-items:flex-end;gap:8px;height:160px}
+.col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%;min-width:0}
+.colv{width:100%;max-width:34px;display:flex;flex-direction:column-reverse;border-radius:10px 10px 4px 4px;overflow:hidden;min-height:4px;background:var(--soft)}
+.col small{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.col .v{font-size:10.5px;color:var(--muted)}
+.col.cur small{color:var(--ink);font-weight:700}
+
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:color-mix(in srgb,var(--card) 90%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:6px 8px calc(env(safe-area-inset-bottom,0px) + 6px)}
+.nav-in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
+.nav button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 0;font-size:12px;color:var(--muted);font-weight:600}
+.nav button span{font-size:22px;line-height:1.15;filter:grayscale(1);opacity:.55;transition:.2s}
+.nav button[aria-selected="true"]{color:var(--ink)}
+.nav button[aria-selected="true"] span{filter:none;opacity:1}
+
+.sheet{position:fixed;inset:0;z-index:40;pointer-events:none}
+.sheet-back{position:absolute;inset:0;background:rgba(12,18,32,.42);opacity:0;transition:opacity .25s}
+.sheet-panel{position:absolute;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:var(--card);border-radius:26px 26px 0 0;padding:10px 20px calc(env(safe-area-inset-bottom,0px) + 22px);max-height:90%;overflow:auto;overscroll-behavior:contain;transform:translateY(105%);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.sheet.open{pointer-events:auto}
+.sheet.open .sheet-back{opacity:1}
+.sheet.open .sheet-panel{transform:none}
+.sheet:not(.open) .sheet-panel{visibility:hidden;transition:transform .3s cubic-bezier(.2,.8,.2,1),visibility 0s .3s}
+.grab{width:40px;height:5px;border-radius:9px;background:var(--line);margin:0 auto 14px}
+.sheet h2{font-family:var(--cute);font-weight:400;font-size:23px;margin:0 0 4px}
+.hint{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+
+.field{display:block;margin-top:16px}
+.field > span{display:block;font-size:13px;color:var(--muted);font-weight:600;margin-bottom:6px}
+.input{width:100%;border:1.5px solid var(--line);background:var(--card);border-radius:14px;padding:12px 14px;font-size:16px;outline:none}
+.input:focus{border-color:var(--c-p2)}
+.emo-in{width:72px;text-align:center;font-size:24px;padding:8px}
+.amt-in{display:flex;align-items:baseline;gap:6px;border-bottom:2px solid var(--line);padding:4px 2px}
+.amt-in:focus-within{border-color:var(--c-p2)}
+.amt-in input{flex:1;border:0;outline:0;background:none;font-family:var(--cute);font-size:32px;min-width:0;padding:0}
+.amt-in input::placeholder{color:var(--line)}
+.amt-in em{font-style:normal;color:var(--muted);font-size:18px}
+.quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.pill{padding:7px 12px;border-radius:99px;background:var(--soft);font-size:13.5px;font-weight:600;white-space:nowrap}
+.pill.on{background:var(--ink);color:var(--card)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.seg{display:flex;background:var(--soft);border-radius:14px;padding:4px;gap:4px}
+.seg button{flex:1;min-width:0;padding:9px 4px;border-radius:10px;font-weight:600;font-size:13.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:13px 18px;border-radius:14px;font-weight:700;font-size:15.5px}
+.btn.primary{background:var(--ink);color:var(--card)}
+.btn.ghost{background:var(--soft)}
+.btn.danger{color:var(--warn)}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.5}
+.actions{display:flex;gap:8px;margin-top:22px}
+.actions .btn.primary{flex:1}
+.emo-pick{display:flex;flex-wrap:wrap;gap:2px;margin-top:8px}
+.emo-pick button{width:38px;height:38px;border-radius:10px;font-size:21px}
+.emo-pick button:active{background:var(--soft)}
+.x{width:32px;height:32px;border-radius:50%;color:var(--muted);font-size:15px;flex:none}
+.x:active{background:var(--soft)}
+
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 86px);transform:translate(-50%,16px);background:var(--ink);color:var(--card);padding:10px 16px;border-radius:16px;font-size:14px;font-weight:600;opacity:0;transition:.25s;z-index:60;pointer-events:none;width:max-content;max-width:88vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.err{background:var(--warn);color:#fff}
+
+.setup{min-height:100vh;display:grid;place-items:center;padding:24px 16px}
+.setup-card{width:100%;max-width:400px;background:var(--card);border-radius:28px;padding:30px 22px;box-shadow:var(--shadow)}
+.setup-card .big{font-size:60px;text-align:center;margin:0;line-height:1}
+.setup-card h1{font-family:var(--cute);font-weight:400;text-align:center;margin:10px 0 4px;font-size:30px}
+.setup-card > p{text-align:center;margin:0}
+.err{color:var(--warn);font-size:13.5px;min-height:1.3em;margin:12px 0 0}
+
+@media (max-width:360px){.hero-n{font-size:34px}.env-amt{font-size:18px}}
+@media (prefers-reduced-motion:reduce){*,*::before{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="setup" class="setup" hidden>
+  <div class="setup-card">
+    <p class="big">🐷</p>
+    <h1>우리집 가계부</h1>
+    <p class="muted">구글 시트에 연결하면 두 사람이 같은 기록을 함께 봐요</p>
+    <label class="field"><span>서버 주소 (Apps Script 웹 앱 URL)</span><input class="input" id="sUrl" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+    <label class="field"><span>비밀번호</span><input class="input" id="sPin" type="password" autocomplete="current-password"></label>
+    <p class="err" id="sErr"></p>
+    <button class="btn primary wide" id="sGo">연결하기</button>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <div class="app">
+    <header class="top">
+      <div class="month">
+        <button class="icon-btn" data-act="prev" aria-label="이전 달">‹</button>
+        <h1 id="mTitle"></h1>
+        <button class="icon-btn" data-act="next" aria-label="다음 달">›</button>
+        <button class="today-btn" id="todayBtn" data-act="today" hidden>이번 달</button>
+      </div>
+      <button class="icon-btn" data-act="sync" aria-label="새로고침"><span id="syncIco">↻</span></button>
+      <button class="icon-btn" data-act="settings" aria-label="설정">⚙︎</button>
+    </header>
+    <main id="view"></main>
+  </div>
+  <nav class="nav">
+    <div class="nav-in" role="tablist">
+      <button role="tab" data-act="tab" data-id="month"><span>🗓️</span>이번 달</button>
+      <button role="tab" data-act="tab" data-id="ledger"><span>✏️</span>가계부 쓰기</button>
+      <button role="tab" data-act="tab" data-id="diag"><span>🩺</span>저축 진단</button>
+    </div>
+  </nav>
+</div>
+
+<div id="sheet" class="sheet" aria-hidden="true">
+  <div class="sheet-back" data-close></div>
+  <div class="sheet-panel" role="dialog" aria-modal="true"><div class="grab"></div><div id="sheetBody"></div></div>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* ========== 기본 도우미 ========== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const curMonth = () => ymd(new Date()).slice(0, 7);
+const num = v => Number(v) || 0;
+const fmt = n => Math.round(num(n)).toLocaleString('ko-KR');
+const won = n => fmt(n) + '원';
+const short = n => { n = num(n); const a = Math.abs(n);
+  if (a >= 1e8) return +(n / 1e8).toFixed(1) + '억';
+  if (a >= 1e4) return +(n / 1e4).toFixed(a >= 1e6 ? 0 : 1) + '만';
+  return fmt(n); };
+const digits = s => Number(String(s).replace(/[^\d]/g, '')) || 0;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const shiftMonth = (m, d) => { const [y, mo] = m.split('-').map(Number); const t = new Date(y, mo - 1 + d, 1); return `${t.getFullYear()}-${pad(t.getMonth() + 1)}`; };
+const mNum = m => Number(m.slice(5, 7));
+const mLabel = m => `${m.slice(0, 4)}년 ${mNum(m)}월`;
+const daysIn = m => { const [y, mo] = m.split('-').map(Number); return new Date(y, mo, 0).getDate(); };
+const dayLabel = s => { const [y, m, d] = String(s).split('-').map(Number); if (!d) return s; return `${m}월 ${d}일 ${'일월화수목금토'[new Date(y, m - 1, d).getDay()]}요일`; };
+const fmtDT = iso => { const d = new Date(iso); return isNaN(d) ? '' : `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+};
+
+/* ========== 상수 ========== */
+const TABLES = ['settings', 'incomes', 'incomeMonth', 'envs', 'deposits', 'loans', 'loanPays', 'ledger'];
+const keyOf = t => (t === 'settings' || t === 'incomeMonth' || t === 'loanPays') ? 'key' : 'id';
+const KINDS = { spend: { label: '생활비', emoji: '👛' }, save: { label: '저축', emoji: '🐷' }, loan: { label: '대출', emoji: '🏦' }, etc: { label: '기타', emoji: '📦' } };
+const CATS = [['식비', '🍚'], ['카페·간식', '☕'], ['배달·외식', '🛵'], ['생활용품', '🧻'], ['교통', '🚌'], ['쇼핑', '🛍️'], ['의료·건강', '💊'], ['문화·여가', '🎬'], ['경조사·선물', '🎁'], ['미용', '💇'], ['기타', '📌']];
+const CAT_E = Object.fromEntries(CATS);
+const PEOPLE_EMO = ['🐰', '🐻', '🐱', '🐶', '🦊', '🐼', '🐥', '🐹', '🐨', '🐯', '🐸', '🐧'];
+const ENV_EMO = ['👛', '🏠', '🐷', '🏦', '💰', '🎯', '🌱', '✈️', '🚗', '🎁', '🍼', '🐰', '🐻', '💍', '🩺', '📦'];
+const LOAN_EMO = ['🏦', '🏠', '🚗', '🎓', '💳', '💍', '🏢', '📄'];
+const PALETTE = ['var(--c-p1)', 'var(--c-p2)', 'var(--c-save)', 'var(--c-etc)', 'var(--c-both)', 'var(--c-loan)'];
+
+/* ========== 상태 ========== */
+const blank = () => Object.fromEntries(TABLES.map(t => [t, []]));
+let D = Object.assign(blank(), LS.get('gb2_cache', {}));
+let sheetUrl = LS.get('gb2_sheet', '');
+let M = curMonth();
+let tab = LS.get('gb2_tab', 'month');
+let ledgerOwner = null, justPaid = null, lastSync = 0, pending = 0;
+let queue = Promise.resolve();
+const cfg = () => LS.get('gb2_cfg', null);
+const me = () => LS.get('gb2_me', null);
+const persist = () => LS.set('gb2_cache', D);
+const setting = (k, d = '') => { const r = D.settings.find(s => s.key === k); return r && r.value !== '' ? r.value : d; };
+function person(o) {
+  if (o === 'p1') return { name: setting('name1', '아내'), emoji: setting('emoji1', '🐰'), c: 'var(--c-p1)' };
+  if (o === 'p2') return { name: setting('name2', '남편'), emoji: setting('emoji2', '🐻'), c: 'var(--c-p2)' };
+  return { name: '공용', emoji: '🏠', c: 'var(--c-both)' };
+}
+const envColor = e => e.kind === 'save' ? 'var(--c-save)' : e.kind === 'loan' ? 'var(--c-loan)' : e.kind === 'etc' ? 'var(--c-etc)' : person(e.owner).c;
+
+/* ========== 계산 ========== */
+const live = arr => arr.filter(r => r.active !== 'N');
+const sum = (arr, f = 'amount') => arr.reduce((s, r) => s + num(r[f]), 0);
+const incomes = () => live(D.incomes).sort((a, b) => num(a.payDay) - num(b.payDay));
+const incomeOverride = (inc, m = M) => D.incomeMonth.find(r => r.key === m + '|' + inc.id);
+const incomeAmt = (inc, m = M) => { const o = incomeOverride(inc, m); return o ? num(o.amount) : num(inc.amount); };
+const incomeTotal = (m = M) => incomes().reduce((s, i) => s + incomeAmt(i, m), 0);
+const envs = () => live(D.envs).sort((a, b) => num(a.sort) - num(b.sort));
+const depOf = (m, envId) => D.deposits.filter(d => d.month === m && (!envId || d.envId === envId));
+const envAmt = (e, m = M) => sum(depOf(m, e.id));
+const kindAmt = (kind, m = M) => D.envs.filter(e => e.kind === kind).reduce((s, e) => s + envAmt(e, m), 0);
+const allocated = (m = M) => sum(depOf(m));
+const envFill = (e, m = M) => { const a = envAmt(e, m), t = num(e.target); return t ? Math.min(100, a / t * 100) : (a ? 55 : 0); };
+const loans = () => live(D.loans).sort((a, b) => (num(a.payDay) || 99) - (num(b.payDay) || 99));
+const payOf = (l, m = M) => D.loanPays.find(p => p.key === m + '|' + l.id);
+const principalPaid = l => sum(D.loanPays.filter(p => p.loanId === l.id), 'principalPaid');
+const remaining = l => Math.max(0, num(l.balance) - principalPaid(l));
+const loanDue = () => loans().filter(l => remaining(l) > 0 || payOf(l));
+const ledgerOf = (m, owner) => D.ledger.filter(l => String(l.date).slice(0, 7) === m && (!owner || l.owner === owner));
+const allowance = (owner, m = M) => envs().filter(e => e.kind === 'spend' && e.owner === owner).reduce((s, e) => s + envAmt(e, m), 0);
+const defaultDate = () => M === curMonth() ? ymd(new Date()) : `${M}-01`;
+
+/* ========== 서버 ========== */
+async function api(action, payload, c = cfg()) {
+  if (!c) throw new Error('서버 연결이 필요해요');
+  let res, j;
+  try { res = await fetch(c.url, { method: 'POST', body: JSON.stringify({ action, payload, pin: c.pin }) }); }
+  catch (e) { throw new Error('서버에 연결하지 못했어요. 인터넷 연결과 웹 앱 주소를 확인해 주세요'); }
+  try { j = await res.json(); }
+  catch (e) { throw new Error('서버 응답을 읽지 못했어요. 배포할 때 액세스를 "모든 사용자"로 했는지 확인해 주세요'); }
+  if (!j.ok) throw new Error(j.error || '알 수 없는 오류가 났어요');
+  return j.data;
+}
+const put = (t, row) => ({ op: 'put', t, row });
+const del = (t, key) => ({ op: 'del', t, key });
+function applyOps(ops) {
+  ops.forEach(o => {
+    const arr = D[o.t], k = keyOf(o.t);
+    const target = o.op === 'put' ? o.row[k] : o.key;
+    const i = arr.findIndex(r => String(r[k]) === String(target));
+    if (o.op === 'put') { if (i >= 0) arr[i] = { ...arr[i], ...o.row }; else arr.push({ ...o.row }); }
+    else if (i >= 0) arr.splice(i, 1);
+  });
+}
+// 화면엔 바로 반영하고, 시트 저장은 순서대로 뒤에서 처리
+function save(ops, okMsg) {
+  applyOps(ops); persist(); render();
+  if (okMsg) toast(okMsg);
+  pending++; setSyncing(true);
+  queue = queue.then(() => api('batch', { ops }))
+    .catch(err => { toast('시트에 저장하지 못했어요. ' + err.message, true); pending = 0; return sync(); })
+    .finally(() => { pending = Math.max(0, pending - 1); if (!pending) setSyncing(false); });
+}
+async function sync(manual) {
+  if (pending) return;
+  setSyncing(true);
+  try {
+    const d = await api('load', {});
+    D = blank(); TABLES.forEach(t => D[t] = Array.isArray(d[t]) ? d[t] : []);
+    sheetUrl = d.sheetUrl || ''; LS.set('gb2_sheet', sheetUrl);
+    persist(); lastSync = Date.now();
+    if (!setting('seeded')) seed(); else safeRender();
+    if (!me()) pickMe();
+    else if (manual) toast('최신 기록을 불러왔어요');
+  } catch (e) { toast(e.message, true); }
+  finally { if (!pending) setSyncing(false); }
+}
+function seed() {
+  const now = new Date().toISOString();
+  const env = (name, emoji, owner, kind, sort) => put('envs', { id: uid(), name, emoji, owner, kind, target: 0, sort, active: 'Y', createdAt: now });
+  save([
+    env('아내 생활비', '🐰', 'p1', 'spend', 1),
+    env('남편 생활비', '🐻', 'p2', 'spend', 2),
+    env('공용 생활비', '🏠', 'both', 'spend', 3),
+    env('대출 통장', '🏦', 'both', 'loan', 4),
+    env('저축 통장', '🐷', 'both', 'save', 5),
+    put('incomes', { id: uid(), name: '아내 월급', owner: 'p1', amount: 0, payDay: 10, active: 'Y', createdAt: now }),
+    put('incomes', { id: uid(), name: '남편 월급', owner: 'p2', amount: 0, payDay: 25, active: 'Y', createdAt: now }),
+    put('settings', { key: 'seeded', value: '1' })
+  ]);
+}
+
+/* ========== 화면 공통 ========== */
+function setSyncing(on) { const i = $('#syncIco'); if (i) i.classList.toggle('spin', !!on); }
+let toastT;
+function toast(msg, err) {
+  const t = $('#toast'); t.textContent = msg; t.classList.toggle('err', !!err); t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), err ? 4200 : 2200);
+}
+function openSheet(html, mount) {
+  $('#sheetBody').innerHTML = html;
+  const s = $('#sheet'); s.classList.add('open'); s.setAttribute('aria-hidden', 'false');
+  $('.sheet-panel').scrollTop = 0;
+  if (mount) mount($('#sheetBody'));
+}
+function closeSheet() { const s = $('#sheet'); s.classList.remove('open'); s.setAttribute('aria-hidden', 'true'); }
+function countUp(el, from, to) {
+  if (!el || from === to || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const t0 = performance.now(), dur = 700;
+  const step = t => { const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    el.textContent = won(from + (to - from) * e); if (p < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+const pick = id => { const b = $('#' + id + ' .on'); return b ? b.dataset.v : null; };
+const ownerSeg = (id, val, withBoth) => `<div class="seg" data-group id="${id}">${(withBoth ? ['p1', 'p2', 'both'] : ['p1', 'p2']).map(k => { const p = person(k); return `<button type="button" class="${k === val ? 'on' : ''}" data-v="${k}">${p.emoji} ${esc(p.name)}</button>`; }).join('')}</div>`;
+const emoPick = (forId, list) => `<div class="emo-pick" data-for="${forId}">${list.map(e => `<button type="button" data-e="${e}" aria-label="${e}">${e}</button>`).join('')}</div>`;
+const moneyField = (id, label, val, ph = '0') => `<label class="field"><span>${label}</span><div class="amt-in"><input id="${id}" inputmode="numeric" autocomplete="off" value="${num(val) ? fmt(val) : ''}" placeholder="${ph}"><em>원</em></div></label>`;
+function safeRender() { const a = document.activeElement; if (a && $('#view').contains(a) && a.tagName === 'INPUT') return; render(); }
+
+function render() {
+  $('#mTitle').textContent = mLabel(M);
+  $('#todayBtn').hidden = M === curMonth();
+  $$('.nav [data-act=tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.id === tab)));
+  $('#view').innerHTML = tab === 'ledger' ? viewLedger() : tab === 'diag' ? viewDiag() : viewMonth();
+  justPaid = null;
+}
+
+/* ========== 탭 1: 이번 달 ========== */
+function viewMonth() {
+  const inc = incomeTotal(), alloc = allocated(), left = inc - alloc, es = envs();
+  const segs = es.map(e => ({ v: envAmt(e), c: envColor(e), n: e.name })).filter(s => s.v > 0);
+  const base = Math.max(inc, alloc) || 1;
+  let sub;
+  if (!inc) sub = `<span class="muted">아래 수입에 이번 달 금액을 적어주세요</span>`;
+  else if (left > 0) sub = `아직 안 나눈 돈 <b class="num">${won(left)}</b>`;
+  else if (left < 0) sub = `<span class="warn">수입보다 ${won(-left)} 더 나눴어요</span>`;
+  else sub = `한 푼도 빠짐없이 다 나눴어요 ✨`;
+
+  const hero = `<section class="card hero">
+    <p class="hero-k">${mNum(M)}월에 나눌 돈 <span class="muted">${mNum(shiftMonth(M, -1))}월 월급</span></p>
+    <p class="hero-n num">${won(inc)}</p>
+    <p class="hero-sub">${sub}</p>
+    <div class="stack">${segs.map(s => `<i style="width:${s.v / base * 100}%;background:${s.c}"></i>`).join('')}</div>
+    ${segs.length ? `<div class="legend">${segs.map(s => `<span><i class="dot" style="background:${s.c}"></i>${esc(s.n)}</span>`).join('')}</div>` : ''}
+  </section>`;
+
+  const incs = incomes();
+  const incHtml = `<section class="card"><div class="card-h"><h2>💰 수입</h2><button class="link" data-act="addIncome">+ 추가</button></div>
+    <div class="list">${incs.length ? incs.map(i => {
+      const p = person(i.owner), a = incomeAmt(i), o = incomeOverride(i), changed = o && num(o.amount) !== num(i.amount);
+      return `<button class="row" data-act="income" data-id="${i.id}"><span class="ico">${p.emoji}</span>
+        <span class="mid"><b>${esc(i.name)}</b><small>${num(i.payDay) ? `${mNum(shiftMonth(M, -1))}월 ${num(i.payDay)}일 입금` : '입금일 미정'}${changed ? '<em class="tag">이번 달 변동</em>' : ''}</small></span>
+        <span class="amt">${a ? won(a) : '<span class="muted">금액 입력</span>'}</span></button>`;
+    }).join('') : `<p class="empty">수입 항목을 추가해 주세요</p>`}</div></section>`;
+
+  const envHtml = `<section class="card"><div class="card-h"><h2>👛 통장 나누기</h2><span class="side">통장을 눌러 돈을 넣어요</span></div>
+    <div class="env-grid">${es.map(e => {
+      const a = envAmt(e), t = num(e.target);
+      return `<button class="env ${t && a >= t ? 'full' : ''}" data-act="env" data-id="${e.id}" style="--c:${envColor(e)};--fill:${envFill(e)}%">
+        <span class="env-emo">${esc(e.emoji || KINDS[e.kind]?.emoji || '👛')}</span><span class="env-name">${esc(e.name)}</span>
+        <span class="env-amt num" data-env-amt>${won(a)}</span>
+        <span class="env-goal">${t ? (a >= t ? '목표 달성 🎉' : `목표까지 ${short(t - a)}원`) : (KINDS[e.kind]?.label || '')}</span></button>`;
+    }).join('')}<button class="env add" data-act="addEnv"><b>＋</b>통장 추가</button></div></section>`;
+
+  const ls = loans(), due = loanDue(), paidN = due.filter(l => payOf(l)).length;
+  const monthTotal = sum(due, 'monthly'), remTotal = ls.reduce((s, l) => s + remaining(l), 0);
+  const loanEnvIn = kindAmt('loan'), hasLoanEnv = es.some(e => e.kind === 'loan');
+  let note = '';
+  if (hasLoanEnv && monthTotal) note = loanEnvIn >= monthTotal
+    ? `<p class="note">🏦 대출 통장에 ${won(loanEnvIn)} 넣어서 이번 달 대출금은 충분해요</p>`
+    : `<p class="note bad">🏦 대출 통장에 ${won(monthTotal - loanEnvIn)} 더 넣어야 이번 달 대출금이 채워져요</p>`;
+  const loanHtml = `<section class="card"><div class="card-h"><h2>🏦 이번 달 대출</h2><span class="side">${due.length ? `${due.length}건 중 ${paidN}건 냈어요` : ''}</span></div>
+    ${ls.length ? `<p class="sum-line">이번 달 낼 돈 <b class="num">${won(monthTotal)}</b>, 남은 잔금 합계 <b class="num">${won(remTotal)}</b></p>` : ''}
+    <div>${ls.map(loanRow).join('') || `<p class="empty"><b>🏦</b>대출을 추가하면 매달 냈는지 체크할 수 있어요</p>`}</div>
+    <button class="btn ghost wide" style="margin-top:8px" data-act="addLoan">+ 대출 추가</button>${note}</section>`;
+
+  return hero + incHtml + envHtml + loanHtml;
+}
+function loanRow(l) {
+  const p = payOf(l), rem = remaining(l), bal = num(l.balance), done = rem <= 0 && !p;
+  const pct = bal ? Math.min(100, (bal - rem) / bal * 100) : 0;
+  const paidInfo = p && p.paidAt ? ` (${num(String(p.paidAt).slice(5, 7))}/${num(String(p.paidAt).slice(8, 10))} ${esc(person(p.paidBy).name)})` : '';
+  return `<div class="loan ${p ? 'paid' : ''} ${justPaid === l.id ? 'just' : ''}">
+    <button class="check" data-act="payLoan" data-id="${l.id}" aria-pressed="${!!p}" aria-label="${esc(l.name)} ${p ? '납부 체크 취소' : '냈어요'}" ${done ? 'disabled' : ''}>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg></button>
+    <button class="loan-body" data-act="loan" data-id="${l.id}">
+      <span class="loan-top"><b>${esc(l.emoji || '🏦')} ${esc(l.name)}</b><b class="amt">${won(p ? p.amount : l.monthly)}</b></span>
+      <span class="loan-meta"><span>${done ? '다 갚았어요 🎉' : (num(l.payDay) ? `매월 ${num(l.payDay)}일` : '납부일 미정')}${paidInfo}</span><span>잔금 <b class="num" data-rem="${l.id}">${won(rem)}</b></span></span>
+      <span class="pbar"><i style="width:${pct}%"></i></span>
+    </button></div>`;
+}
+
+function incomeSheet(inc) {
+  const isNew = !inc, i = inc || { name: '', owner: me() || 'p1', amount: 0, payDay: '' };
+  openSheet(`<h2>${isNew ? '수입 추가' : esc(i.name)}</h2>
+    ${isNew ? '' : moneyField('iCur', `${mNum(M)}월에 나눌 금액`, incomeAmt(inc)) + `<p class="hint">이번 달만 바뀌어요. 다음 달은 평소 금액으로 시작해요.</p>`}
+    ${moneyField('iAmt', isNew ? '매달 들어오는 금액' : '평소 금액 (매달 기본값)', i.amount)}
+    <label class="field"><span>이름</span><input class="input" id="iName" value="${esc(i.name)}" placeholder="예: 남편 월급"></label>
+    <div class="field"><span>누구 수입인가요?</span>${ownerSeg('iOwner', i.owner, true)}</div>
+    <label class="field"><span>입금일</span><input class="input" id="iDay" inputmode="numeric" value="${esc(i.payDay)}" placeholder="예: 25"></label>
+    <div class="actions">${isNew ? '' : '<button class="btn ghost danger" id="iDel">삭제</button>'}<button class="btn primary" id="iSave">저장</button></div>`, () => {
+    $('#iSave').onclick = () => {
+      const name = $('#iName').value.trim(); if (!name) { $('#iName').focus(); return toast('이름을 적어주세요', true); }
+      const id = isNew ? uid() : inc.id, amount = digits($('#iAmt').value);
+      const ops = [put('incomes', { id, name, owner: pick('iOwner') || 'both', amount, payDay: Math.min(31, digits($('#iDay').value)) || '', active: 'Y', ...(isNew ? { createdAt: new Date().toISOString() } : {}) })];
+      if (!isNew) {
+        const cur = digits($('#iCur').value), key = M + '|' + id;
+        if (cur !== amount) ops.push(put('incomeMonth', { key, month: M, incomeId: id, amount: cur }));
+        else if (incomeOverride(inc)) ops.push(del('incomeMonth', key));
+      }
+      closeSheet(); save(ops, '수입을 저장했어요');
+    };
+    if (!isNew) $('#iDel').onclick = () => { if (confirm(`'${i.name}' 수입을 지울까요?`)) { closeSheet(); save([put('incomes', { id: inc.id, active: 'N' })], '수입을 지웠어요'); } };
+  });
+}
+
+function envSheet(e) {
+  const a = envAmt(e), t = num(e.target), need = t - a;
+  const deps = depOf(M, e.id).sort((x, y) => String(y.createdAt).localeCompare(String(x.createdAt)));
+  openSheet(`<h2>${esc(e.emoji)} ${esc(e.name)}</h2>
+    <p class="muted" style="margin:0">${mNum(M)}월에 넣은 돈 <b class="num" style="color:var(--ink)">${won(a)}</b>${t ? ` / 목표 ${won(t)}` : ''}</p>
+    <div class="field"><div class="amt-in"><input id="dAmt" inputmode="numeric" autocomplete="off" placeholder="얼마 넣을까요?"><em>원</em></div>
+    <div class="quick">${[10000, 50000, 100000, 500000].map(v => `<button type="button" class="pill" data-q="${v}">+${short(v)}</button>`).join('')}${need > 0 ? `<button type="button" class="pill" data-q="fill">목표까지 ${short(need)}</button>` : ''}</div></div>
+    <div class="actions"><button class="btn primary" id="dGo">넣기 🪙</button></div>
+    ${deps.length ? `<div style="margin-top:18px"><p class="muted" style="font-size:13px;margin:0 0 2px">이번 달 넣은 기록</p><div class="list">${deps.map(d => `<div class="row"><span class="mid"><b class="num">${won(d.amount)}</b><small>${esc(person(d.by).name)} ${fmtDT(d.createdAt)}</small></span><button class="x" data-undo="${d.id}" aria-label="이 기록 지우기">✕</button></div>`).join('')}</div></div>` : ''}
+    <button class="link" id="dEdit" style="margin-top:12px">통장 이름·목표 고치기</button>`, body => {
+    const inp = $('#dAmt');
+    $$('[data-q]', body).forEach(b => b.onclick = () => { inp.value = fmt(b.dataset.q === 'fill' ? need : digits(inp.value) + Number(b.dataset.q)); });
+    $('#dGo').onclick = () => { const v = digits(inp.value); if (!v) { inp.focus(); return toast('금액을 적어주세요', true); } closeSheet(); deposit(e, v); };
+    $$('[data-undo]', body).forEach(b => b.onclick = () => { closeSheet(); save([del('deposits', b.dataset.undo)], '넣은 기록을 지웠어요'); });
+    $('#dEdit').onclick = () => envEditSheet(e);
+  });
+}
+function deposit(e, v) {
+  const before = envAmt(e), oldFill = envFill(e);
+  save([put('deposits', { id: uid(), month: M, envId: e.id, amount: v, by: me() || 'both', createdAt: new Date().toISOString() })], `${e.name}에 ${won(v)} 넣었어요`);
+  const card = $(`.env[data-id="${e.id}"]`); if (!card) return;
+  const newFill = card.style.getPropertyValue('--fill');
+  card.style.setProperty('--fill', oldFill + '%'); void card.offsetHeight;
+  requestAnimationFrame(() => card.style.setProperty('--fill', newFill));
+  const coin = document.createElement('span'); coin.className = 'coin'; coin.textContent = '🪙';
+  card.appendChild(coin); setTimeout(() => coin.remove(), 900);
+  card.classList.add('bump');
+  setTimeout(() => countUp($('[data-env-amt]', card), before, before + v), 450);
+}
+function envEditSheet(e) {
+  const isNew = !e, x = e || { name: '', emoji: '👛', owner: 'both', kind: 'spend', target: 0 };
+  openSheet(`<h2>${isNew ? '통장 추가' : '통장 고치기'}</h2>
+    <div class="field"><span>이모지</span><input class="input emo-in" id="vE" value="${esc(x.emoji)}" aria-label="이모지">${emoPick('vE', ENV_EMO)}</div>
+    <label class="field"><span>통장 이름</span><input class="input" id="vN" value="${esc(x.name)}" placeholder="예: 여행 적금"></label>
+    <div class="field"><span>누구 통장인가요?</span>${ownerSeg('vO', x.owner, true)}</div>
+    <div class="field"><span>어디에 쓰는 통장인가요?</span><div class="seg" data-group id="vK">${Object.entries(KINDS).map(([k, v]) => `<button type="button" class="${k === x.kind ? 'on' : ''}" data-v="${k}">${v.emoji} ${v.label}</button>`).join('')}</div>
+      <p class="hint">생활비 통장에 넣은 돈은 가계부 쓰기 탭에서 그 사람이 쓸 수 있는 돈으로 보여요.</p></div>
+    ${moneyField('vT', '매달 목표 금액 (선택)', x.target)}
+    <div class="actions">${isNew ? '' : '<button class="btn ghost danger" id="vDel">삭제</button>'}<button class="btn primary" id="vSave">저장</button></div>`, () => {
+    $('#vSave').onclick = () => {
+      const name = $('#vN').value.trim(); if (!name) { $('#vN').focus(); return toast('통장 이름을 적어주세요', true); }
+      const row = { id: isNew ? uid() : e.id, name, emoji: $('#vE').value.trim() || '👛', owner: pick('vO') || 'both', kind: pick('vK') || 'spend', target: digits($('#vT').value), active: 'Y' };
+      if (isNew) Object.assign(row, { sort: Math.max(0, ...D.envs.map(z => num(z.sort))) + 1, createdAt: new Date().toISOString() });
+      closeSheet(); save([put('envs', row)], isNew ? '통장을 만들었어요' : '통장을 고쳤어요');
+    };
+    if (!isNew) $('#vDel').onclick = () => { if (confirm(`'${x.name}' 통장을 지울까요? 지난 기록은 시트에 남아요.`)) { closeSheet(); save([put('envs', { id: e.id, active: 'N' })], '통장을 지웠어요'); } };
+  });
+}
+
+function loanSheet(l) {
+  const isNew = !l, x = l || { name: '', emoji: '🏦', balance: 0, monthly: 0, principal: 0, payDay: '', memo: '' };
+  const pays = isNew ? [] : D.loanPays.filter(p => p.loanId === l.id).sort((a, b) => String(b.month).localeCompare(String(a.month)));
+  openSheet(`<h2>${isNew ? '대출 추가' : esc(x.name)}</h2>
+    <div class="field"><span>이모지</span><input class="input emo-in" id="oE" value="${esc(x.emoji)}" aria-label="이모지">${emoPick('oE', LOAN_EMO)}</div>
+    <label class="field"><span>대출 이름</span><input class="input" id="oN" value="${esc(x.name)}" placeholder="예: 전세자금대출"></label>
+    ${moneyField('oR', '지금 남은 잔금', isNew ? 0 : remaining(l))}
+    ${moneyField('oM', '매달 내는 돈', x.monthly)}
+    ${moneyField('oP', '그중 원금 (선택)', x.principal)}
+    <p class="hint">비워두면 체크할 때 매달 내는 돈만큼 잔금이 줄어요. 이자가 섞여 있다면 원금만 적어주세요.</p>
+    <label class="field"><span>납부일</span><input class="input" id="oD" inputmode="numeric" value="${esc(x.payDay)}" placeholder="예: 15"></label>
+    <label class="field"><span>메모 (선택)</span><input class="input" id="oMemo" value="${esc(x.memo)}" placeholder="예: 국민은행, 금리 3.9%"></label>
+    ${pays.length ? `<div style="margin-top:18px"><p class="muted" style="font-size:13px;margin:0 0 2px">낸 기록</p><div class="list">${pays.map(p => `<div class="row"><span class="mid"><b>${mLabel(p.month)}</b><small>잔금 ${won(p.principalPaid)} 줄었어요</small></span><span class="amt">${won(p.amount)}</span></div>`).join('')}</div></div>` : ''}
+    <div class="actions">${isNew ? '' : '<button class="btn ghost danger" id="oDel">삭제</button>'}<button class="btn primary" id="oSave">저장</button></div>`, () => {
+    $('#oSave').onclick = () => {
+      const name = $('#oN').value.trim(), monthly = digits($('#oM').value);
+      if (!name) { $('#oN').focus(); return toast('대출 이름을 적어주세요', true); }
+      if (!monthly) { $('#oM').focus(); return toast('매달 내는 돈을 적어주세요', true); }
+      const id = isNew ? uid() : l.id;
+      const row = { id, name, emoji: $('#oE').value.trim() || '🏦', balance: digits($('#oR').value) + (isNew ? 0 : principalPaid(l)), monthly, principal: digits($('#oP').value), payDay: Math.min(31, digits($('#oD').value)) || '', memo: $('#oMemo').value.trim(), active: 'Y' };
+      if (isNew) row.createdAt = new Date().toISOString();
+      closeSheet(); save([put('loans', row)], isNew ? '대출을 추가했어요' : '대출을 고쳤어요');
+    };
+    if (!isNew) $('#oDel').onclick = () => { if (confirm(`'${x.name}'을(를) 목록에서 지울까요? 낸 기록은 시트에 남아요.`)) { closeSheet(); save([put('loans', { id: l.id, active: 'N' })], '대출을 지웠어요'); } };
+  });
+}
+function toggleLoan(id) {
+  const l = D.loans.find(x => x.id === id); if (!l) return;
+  const p = payOf(l), before = remaining(l);
+  if (p) save([del('loanPays', p.key)], `${l.name} 체크를 취소했어요`);
+  else {
+    const amt = num(l.monthly), cut = Math.min(num(l.principal) || amt, before);
+    const date = M === curMonth() ? ymd(new Date()) : `${M}-${pad(Math.min(num(l.payDay) || 1, daysIn(M)))}`;
+    justPaid = id;
+    save([put('loanPays', { key: M + '|' + id, month: M, loanId: id, amount: amt, principalPaid: cut, paidAt: date, paidBy: me() || 'both' })], `${l.name} 냈어요! 잔금이 ${won(cut)} 줄었어요`);
+  }
+  countUp($(`[data-rem="${id}"]`), before, remaining(l));
+}
+
+/* ========== 탭 2: 가계부 쓰기 ========== */
+function viewLedger() {
+  const o = ledgerOwner || me() || 'p1'; ledgerOwner = o;
+  const p = person(o), budget = allowance(o), list = ledgerOf(M, o), spent = sum(list), left = budget - spent;
+  const pct = budget ? Math.min(100, spent / budget * 100) : 0;
+  const tabs = `<div class="seg who-tabs">${['p1', 'p2', 'both'].map(k => { const q = person(k); return `<button class="${k === o ? 'on' : ''}" data-act="owner" data-id="${k}">${q.emoji} ${esc(q.name)}</button>`; }).join('')}</div>`;
+  const wallet = `<section class="card"><div class="wallet" style="--c:${p.c}"><span class="wallet-emo">${p.emoji}</span>
+      <div class="mid"><small>${mNum(M)}월 ${o === 'both' ? '공용 생활비' : esc(p.name) + ' 생활비'} ${left < 0 ? '초과' : '남은 돈'}</small><span class="wallet-n num ${left < 0 ? 'warn' : ''}">${won(Math.abs(left))}</span></div></div>
+    <div class="bar" style="margin-top:14px"><i style="width:${pct}%;background:${left < 0 ? 'var(--warn)' : p.c}"></i></div>
+    <p class="muted" style="font-size:13px;margin:8px 0 0">${budget ? `넣은 돈 ${won(budget)} 중 ${won(spent)} 썼어요` : '이번 달 탭에서 생활비 통장에 돈을 넣으면 여기서 남은 돈을 볼 수 있어요'}</p></section>`;
+  const form = `<section class="card"><div class="card-h"><h2>✏️ 쓴 돈 적기</h2><span class="side">쓰고 싶을 때만 써도 돼요</span></div>
+    <div class="amt-in"><input id="lAmt" inputmode="numeric" autocomplete="off" placeholder="0"><em>원</em></div>
+    <input class="input" id="lItem" placeholder="어디에 썼나요? (예: 스타벅스)" style="margin-top:12px">
+    <div class="chips" data-group id="lCat" style="margin-top:10px">${CATS.map(([c, e], i) => `<button type="button" class="pill ${i === 0 ? 'on' : ''}" data-v="${c}">${e} ${c}</button>`).join('')}</div>
+    <div style="display:flex;gap:8px;margin-top:12px"><input class="input" type="date" id="lDate" value="${defaultDate()}" style="flex:1;min-width:0"><button class="btn primary" data-act="addLed">적기</button></div></section>`;
+  let listHtml;
+  if (list.length) {
+    const byDay = {};
+    list.slice().sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(b.createdAt).localeCompare(String(a.createdAt)))
+      .forEach(x => (byDay[x.date] = byDay[x.date] || []).push(x));
+    listHtml = `<section class="card"><div class="card-h"><h2>📒 ${mNum(M)}월 기록</h2><span class="side">${list.length}건</span></div>
+      ${Object.entries(byDay).map(([d, xs]) => `<div class="day"><span>${dayLabel(d)}</span><span class="num">${won(sum(xs))}</span></div>
+      <div class="list">${xs.map(x => `<button class="row" data-act="led" data-id="${x.id}"><span class="ico">${CAT_E[x.category] || '📌'}</span><span class="mid"><b>${esc(x.item)}</b><small>${esc(x.category)}</small></span><span class="amt">${won(x.amount)}</span></button>`).join('')}</div>`).join('')}</section>`;
+  } else listHtml = `<p class="empty"><b>📒</b>${mNum(M)}월 기록이 아직 없어요</p>`;
+  return tabs + wallet + form + listHtml;
+}
+function addLedger() {
+  const amt = digits($('#lAmt').value); if (!amt) { $('#lAmt').focus(); return toast('금액을 적어주세요', true); }
+  const cat = pick('lCat') || '기타', date = $('#lDate').value || defaultDate();
+  save([put('ledger', { id: uid(), date, owner: ledgerOwner, category: cat, item: $('#lItem').value.trim() || cat, amount: amt, memo: '', createdAt: new Date().toISOString() })],
+    date.slice(0, 7) === M ? `${won(amt)} 적었어요` : `${won(amt)} 적었어요 (${mNum(date.slice(0, 7))}월 기록)`);
+}
+function ledgerSheet(x) {
+  openSheet(`<h2>기록 고치기</h2>
+    ${moneyField('eAmt', '금액', x.amount)}
+    <label class="field"><span>내용</span><input class="input" id="eItem" value="${esc(x.item)}"></label>
+    <div class="field"><span>카테고리</span><div class="chips" data-group id="eCat">${CATS.map(([c, e]) => `<button type="button" class="pill ${c === x.category ? 'on' : ''}" data-v="${c}">${e} ${c}</button>`).join('')}</div></div>
+    <div class="field"><span>누구 돈</span>${ownerSeg('eOwner', x.owner, true)}</div>
+    <label class="field"><span>날짜</span><input class="input" type="date" id="eDate" value="${esc(x.date)}"></label>
+    <div class="actions"><button class="btn ghost danger" id="eDel">삭제</button><button class="btn primary" id="eSave">저장</button></div>`, () => {
+    $('#eSave').onclick = () => {
+      const amt = digits($('#eAmt').value); if (!amt) return toast('금액을 적어주세요', true);
+      const cat = pick('eCat') || '기타';
+      closeSheet(); save([put('ledger', { id: x.id, amount: amt, item: $('#eItem').value.trim() || cat, category: cat, owner: pick('eOwner') || x.owner, date: $('#eDate').value || x.date })], '기록을 고쳤어요');
+    };
+    $('#eDel').onclick = () => { closeSheet(); save([del('ledger', x.id)], '기록을 지웠어요'); };
+  });
+}
+
+/* ========== 탭 3: 저축 진단 ========== */
+function grade(inc, rate) {
+  if (!inc) return { e: '🤔', t: '수입을 먼저 알려주세요' };
+  if (rate >= 30) return { e: '🏆', t: '저축 우등생이에요!' };
+  if (rate >= 20) return { e: '😊', t: '차곡차곡 잘 모으고 있어요' };
+  if (rate >= 10) return { e: '🌱', t: '조금만 더 모아볼까요?' };
+  if (rate > 0) return { e: '🐣', t: '저축 습관을 키우는 중이에요' };
+  return { e: '🫙', t: '저축 통장이 아직 비어 있어요' };
+}
+function diagnose() {
+  const tips = [], inc = incomeTotal(), left = inc - allocated(), saved = kindAmt('save');
+  const rateIf = extra => Math.round((saved + extra) / inc * 100);
+  if (!inc) return [{ e: '💰', t: '이번 달 탭에서 수입 금액을 적어주면 저축률을 계산해 드릴게요.' }];
+  if (saved / inc >= 0.3) tips.push({ e: '🏆', t: `수입의 ${rateIf(0)}%를 저축했어요. 지금처럼만 가면 돼요!` });
+  incomes().forEach(i => {
+    const a = incomeAmt(i), b = num(i.amount);
+    if (b && a < b * 0.9) tips.push({ e: '📉', t: `${esc(i.name)}이 평소보다 ${won(b - a)} 적게 들어왔어요. 이번 달은 공용 생활비를 조금 줄이고, 저축 금액은 그대로 지켜보는 건 어떨까요?` });
+    else if (b && a > b * 1.1) tips.push({ e: '📈', t: `${esc(i.name)}이 평소보다 ${won(a - b)} 많아요! 늘어난 만큼 저축 통장에 넣으면 저축률이 ${rateIf(a - b)}%가 돼요.` });
+  });
+  if (left > 0) tips.push({ e: '🪙', t: `아직 안 나눈 돈이 ${won(left)} 있어요. 저축 통장에 넣으면 저축률이 ${rateIf(left)}%로 올라가요.` });
+  if (left < 0) tips.push({ e: '⚠️', t: `나눈 돈이 수입보다 ${won(-left)} 많아요. 통장별 금액을 다시 확인해 보세요.` });
+  const ls = loans(), due = sum(loanDue(), 'monthly'), loanIn = kindAmt('loan');
+  if (due && envs().some(e => e.kind === 'loan') && loanIn < due) tips.push({ e: '🏦', t: `대출 통장에 ${won(due - loanIn)}이 모자라요. 대출금이 빠져나가기 전에 채워 두세요.` });
+  if (M === curMonth()) {
+    const today = new Date().getDate();
+    const late = ls.filter(l => !payOf(l) && remaining(l) > 0 && num(l.payDay) && num(l.payDay) < today);
+    if (late.length) tips.push({ e: '⏰', t: `${late.map(l => esc(l.name)).join(', ')} 납부일이 지났는데 아직 체크 전이에요. 빠져나갔는지 확인해 보세요.` });
+  }
+  const all = ledgerOf(M), total = sum(all);
+  if (all.length) {
+    const by = c => sum(all.filter(l => l.category === c));
+    const cafe = by('카페·간식');
+    if (cafe >= 30000) tips.push({ e: '☕', t: `이번 달 카페·간식에 ${won(cafe)} 썼어요. 다음 달은 커피를 집에서 내려 마셔서 ${short(Math.round(cafe * 0.6 / 1000) * 1000)}원 정도를 저축에 더해보는 건 어떨까요?` });
+    const deli = by('배달·외식');
+    if (total && deli / total >= 0.25) tips.push({ e: '🛵', t: `쓴 돈의 ${Math.round(deli / total * 100)}%가 배달·외식이에요. 네 번 중 한 번만 집밥으로 바꿔도 한 달에 ${short(Math.round(deli / 4 / 1000) * 1000)}원 정도 아낄 수 있어요.` });
+    const shop = by('쇼핑');
+    if (total && shop / total >= 0.3) tips.push({ e: '🛍️', t: `쇼핑이 쓴 돈의 ${Math.round(shop / total * 100)}%예요. 장바구니에 담고 하루 뒤에 결제하면 충동구매가 꽤 줄어요.` });
+    ['p1', 'p2', 'both'].forEach(o => {
+      const b = allowance(o), s = sum(ledgerOf(M, o)), p = person(o), who = o === 'both' ? '공용 생활비' : `${p.name} 생활비`;
+      if (b && s > b) tips.push({ e: p.emoji, t: `${esc(who)}를 ${won(s - b)} 넘게 썼어요. 다음 달 금액을 다시 정하거나 지출을 조금 줄여봐요.` });
+      else if (b && s && M === curMonth() && new Date().getDate() >= 20 && s <= b * 0.6) tips.push({ e: p.emoji, t: `${esc(who)}가 아직 ${won(b - s)} 남았어요. 월말에 남는 돈은 저축 통장으로 옮겨볼까요?` });
+    });
+    const prevT = sum(ledgerOf(shiftMonth(M, -1)));
+    if (prevT && total > prevT * 1.2) tips.push({ e: '📊', t: `지난달보다 쓴 돈이 ${won(total - prevT)} 늘었어요.` });
+    else if (prevT && M !== curMonth() && total < prevT * 0.8) tips.push({ e: '👏', t: `지난달보다 ${won(prevT - total)} 덜 썼어요. 잘했어요!` });
+  } else tips.push({ e: '✏️', t: '가계부 쓰기 탭에 쓴 돈을 남기면 카페나 배달처럼 어디서 돈이 새는지도 알려드릴게요.' });
+  const rem = ls.reduce((s, l) => s + remaining(l), 0);
+  const perM = ls.filter(l => remaining(l) > 0).reduce((s, l) => s + (num(l.principal) || num(l.monthly)), 0);
+  if (rem && perM) {
+    const n = Math.ceil(rem / perM), y = Math.floor(n / 12), mo = n % 12;
+    tips.push({ e: '🎯', t: `지금 속도면 약 ${y ? y + '년 ' : ''}${mo ? mo + '개월' : ''} 뒤, ${mLabel(shiftMonth(M, n))}쯤 대출을 다 갚아요. 남은 잔금은 ${won(rem)}이에요.` });
+  }
+  if (!saved && !left) tips.push({ e: '🐷', t: '이번 달은 저축 통장에 넣은 돈이 없어요. 적은 금액이라도 먼저 떼어 두면 습관이 돼요.' });
+  return tips;
+}
+function donut(segs, center, sub) {
+  const total = segs.reduce((s, x) => s + x.v, 0), R = 52, C = 2 * Math.PI * R; let off = 0;
+  const arcs = total ? segs.map(s => { const len = s.v / total * C; const a = `<circle r="${R}" cx="70" cy="70" fill="none" stroke-width="20" style="stroke:${s.c}" stroke-dasharray="${Math.max(0.01, len - (segs.length > 1 ? 1.5 : 0))} ${C}" stroke-dashoffset="${-off}"/>`; off += len; return a; }).join('') : '';
+  return `<svg class="donut" viewBox="0 0 140 140" role="img" aria-label="월급이 나뉜 비율"><circle r="${R}" cx="70" cy="70" fill="none" stroke-width="20" style="stroke:var(--soft)"/><g transform="rotate(-90 70 70)">${arcs}</g><text x="70" y="72" text-anchor="middle" class="d-c">${center}</text><text x="70" y="90" text-anchor="middle" class="d-s">${sub}</text></svg>`;
+}
+function viewDiag() {
+  const inc = incomeTotal(), saved = kindAmt('save'), rate = inc ? Math.round(saved / inc * 100) : 0, g = grade(inc, rate);
+  const loanCut = sum(D.loanPays.filter(p => p.month === M), 'principalPaid');
+  const hero = `<section class="card"><div class="diag-hero"><span class="mascot" aria-hidden="true">${g.e}</span><div>
+    <p class="muted" style="margin:0;font-size:13.5px">${mNum(M)}월 우리집 저축 진단</p><p class="diag-title">${g.t}</p>
+    <p style="margin:0;font-size:14px">저축률 <b class="num">${rate}%</b>${loanCut ? `, 대출 원금 ${short(loanCut)}원 갚았어요` : ''}</p></div></div></section>`;
+
+  const left = inc - allocated();
+  const segs = envs().map(e => ({ v: envAmt(e), c: envColor(e), n: e.name })).filter(s => s.v > 0);
+  if (left > 0) segs.push({ v: left, c: 'var(--c-none)', n: '안 나눈 돈' });
+  const segT = segs.reduce((s, x) => s + x.v, 0);
+  const donutHtml = `<section class="card"><div class="card-h"><h2>🍩 월급이 간 곳</h2></div>
+    ${segT ? `<div class="donut-wrap">${donut(segs, rate + '%', '저축률')}<div class="dl">${segs.map(s => `<div><i class="dot" style="background:${s.c}"></i><span>${esc(s.n)}</span><b class="num">${Math.round(s.v / segT * 100)}%</b></div>`).join('')}</div></div>`
+      : `<p class="empty"><b>🍩</b>통장에 돈을 나눠 넣으면 그래프가 그려져요</p>`}</section>`;
+
+  const tipsHtml = `<section class="card"><div class="card-h"><h2>🩺 진단과 제안</h2></div><div class="tips">${diagnose().map(t => `<div class="tip"><span class="tip-e">${t.e}</span><span>${t.t}</span></div>`).join('')}</div></section>`;
+
+  const all = ledgerOf(M);
+  const cats = CATS.map(([c, e]) => ({ c, e, v: sum(all.filter(l => l.category === c)) })).filter(x => x.v).sort((a, b) => b.v - a.v);
+  const cmax = cats.length ? cats[0].v : 1;
+  const catHtml = cats.length ? `<section class="card"><div class="card-h"><h2>🧺 어디에 많이 썼을까</h2><span class="side">${won(sum(all))}</span></div>
+    ${cats.map((x, i) => `<div class="bar-row"><span>${x.e} ${x.c}</span><div class="bar"><i style="width:${x.v / cmax * 100}%;background:${PALETTE[i % PALETTE.length]}"></i></div><b class="num">${short(x.v)}${x.v < 1e4 ? '원' : ''}</b></div>`).join('')}</section>` : '';
+
+  const ms = [5, 4, 3, 2, 1, 0].map(i => shiftMonth(M, -i));
+  const data = ms.map(m => ({ m, s: kindAmt('save', m), l: sum(D.loanPays.filter(p => p.month === m), 'principalPaid') }));
+  const tmax = Math.max(1, ...data.map(d => d.s + d.l));
+  const hasTrend = data.some(d => d.s + d.l);
+  const trendHtml = `<section class="card"><div class="card-h"><h2>📈 모은 돈 흐름</h2><span class="side">최근 6개월</span></div>
+    ${hasTrend ? `<div class="cols">${data.map(d => { const t = d.s + d.l; return `<div class="col ${d.m === M ? 'cur' : ''}"><span class="v num">${t ? short(t) : ''}</span>
+      <div class="colv" style="height:${t / tmax * 110}px">${d.s ? `<i style="flex:${d.s};background:var(--c-save)"></i>` : ''}${d.l ? `<i style="flex:${d.l};background:var(--c-loan)"></i>` : ''}</div><small>${mNum(d.m)}월</small></div>`; }).join('')}</div>
+      <div class="legend"><span><i class="dot" style="background:var(--c-save)"></i>저축</span><span><i class="dot" style="background:var(--c-loan)"></i>대출 원금 갚은 돈</span></div>`
+      : `<p class="empty"><b>📈</b>저축 통장에 돈을 넣거나 대출을 체크하면 쌓여요</p>`}</section>`;
+  return hero + donutHtml + tipsHtml + catHtml + trendHtml;
+}
+
+/* ========== 설정 ========== */
+function openSettings() {
+  openSheet(`<h2>설정</h2>
+    ${['1', '2'].map(n => `<div class="field"><span>${n === '1' ? '첫 번째' : '두 번째'} 사람</span>
+      <div style="display:flex;gap:8px"><input class="input emo-in" id="sE${n}" value="${esc(setting('emoji' + n, n === '1' ? '🐰' : '🐻'))}" aria-label="이모지"><input class="input" id="sN${n}" value="${esc(setting('name' + n, n === '1' ? '아내' : '남편'))}" aria-label="이름"></div>
+      ${emoPick('sE' + n, PEOPLE_EMO)}</div>`).join('')}
+    <div class="field"><span>이 폰은 누가 쓰나요?</span>${ownerSeg('sMe', me() || 'p1', false)}</div>
+    <div class="actions"><button class="btn primary" id="sSave">저장</button></div>
+    <div class="list" style="margin-top:20px">
+      ${sheetUrl ? `<a class="row" href="${esc(sheetUrl)}" target="_blank" rel="noopener"><span class="ico">📗</span><span class="mid"><b>구글 시트에서 보기</b><small>모든 기록이 여기에 저장돼요</small></span></a>` : ''}
+      <button class="row" id="sLink"><span class="ico">🔗</span><span class="mid"><b>배우자 폰 연결 링크 복사</b><small>링크를 열고 비밀번호만 넣으면 연결돼요</small></span></button>
+      <button class="row" id="sOut"><span class="ico">🔌</span><span class="mid"><b>이 폰에서 연결 끊기</b><small>기록은 시트에 그대로 남아요</small></span></button>
+    </div>`, () => {
+    $('#sSave').onclick = () => {
+      const ops = ['1', '2'].flatMap(n => [put('settings', { key: 'name' + n, value: $('#sN' + n).value.trim() }), put('settings', { key: 'emoji' + n, value: $('#sE' + n).value.trim() })]);
+      LS.set('gb2_me', pick('sMe') || 'p1'); ledgerOwner = null;
+      closeSheet(); save(ops, '설정을 저장했어요');
+    };
+    $('#sLink').onclick = () => {
+      const link = location.origin + location.pathname + '#s=' + encodeURIComponent(cfg().url);
+      (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject())
+        .then(() => toast('링크를 복사했어요. 카톡으로 보내주세요'))
+        .catch(() => prompt('이 링크를 복사해서 보내주세요', link));
+    };
+    $('#sOut').onclick = () => { if (confirm('이 폰에서 연결을 끊을까요?')) { ['gb2_cfg', 'gb2_cache', 'gb2_me', 'gb2_sheet'].forEach(LS.del); location.reload(); } };
+  });
+}
+function pickMe() {
+  openSheet(`<h2>이 폰은 누가 쓰나요?</h2>
+    <p class="muted" style="margin:0">돈을 넣거나 대출을 체크하면 누가 했는지 함께 남아요. 이름과 이모지는 설정에서 바꿀 수 있어요.</p>
+    <div class="actions">${['p1', 'p2'].map(k => { const p = person(k); return `<button class="btn ghost" style="flex:1;flex-direction:column;padding:18px" data-me="${k}"><span style="font-size:40px;line-height:1">${p.emoji}</span>${esc(p.name)}</button>`; }).join('')}</div>`, body => {
+    $$('[data-me]', body).forEach(b => b.onclick = () => { LS.set('gb2_me', b.dataset.me); ledgerOwner = null; closeSheet(); render(); });
+  });
+}
+
+/* ========== 이벤트 ========== */
+const ACT = {
+  prev() { M = shiftMonth(M, -1); render(); window.scrollTo(0, 0); },
+  next() { M = shiftMonth(M, 1); render(); window.scrollTo(0, 0); },
+  today() { M = curMonth(); render(); },
+  sync() { sync(true); },
+  settings: openSettings,
+  tab(id) { tab = id; LS.set('gb2_tab', id); render(); window.scrollTo(0, 0); },
+  income(id) { incomeSheet(D.incomes.find(i => i.id === id)); },
+  addIncome() { incomeSheet(null); },
+  env(id) { const e = D.envs.find(x => x.id === id); if (e) envSheet(e); },
+  addEnv() { envEditSheet(null); },
+  loan(id) { const l = D.loans.find(x => x.id === id); if (l) loanSheet(l); },
+  addLoan() { loanSheet(null); },
+  payLoan: toggleLoan,
+  owner(id) { ledgerOwner = id; render(); },
+  led(id) { const x = D.ledger.find(l => l.id === id); if (x) ledgerSheet(x); },
+  addLed: addLedger
+};
+document.addEventListener('click', ev => {
+  if (ev.target.closest('[data-close]')) return closeSheet();
+  const chip = ev.target.closest('[data-group] [data-v]');
+  if (chip) { $$('[data-v]', chip.closest('[data-group]')).forEach(b => b.classList.toggle('on', b === chip)); return; }
+  const emo = ev.target.closest('.emo-pick [data-e]');
+  if (emo) { const inp = $('#' + emo.closest('.emo-pick').dataset.for); if (inp) inp.value = emo.dataset.e; return; }
+  const a = ev.target.closest('[data-act]');
+  if (a && ACT[a.dataset.act]) ACT[a.dataset.act](a.dataset.id, a);
+});
+document.addEventListener('input', ev => {
+  if (ev.target.matches('.amt-in input')) { const v = digits(ev.target.value); ev.target.value = v ? fmt(v) : ''; }
+});
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape') closeSheet();
+  if (ev.key === 'Enter' && ev.target.matches('#lAmt, #lItem')) addLedger();
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && cfg() && Date.now() - lastSync > 30000) sync();
+});
+
+/* ========== 시작 ========== */
+function start() { $('#setup').hidden = true; $('#app').hidden = false; render(); sync(); }
+function showSetup() {
+  $('#app').hidden = true; $('#setup').hidden = false;
+  const m = location.hash.match(/s=([^&]+)/); if (m) { $('#sUrl').value = decodeURIComponent(m[1]); $('#sPin').focus(); }
+}
+$('#sGo').onclick = async () => {
+  const url = $('#sUrl').value.trim(), pin = $('#sPin').value.trim(), err = $('#sErr'), btn = $('#sGo');
+  err.textContent = '';
+  if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)) { err.textContent = 'Apps Script 웹 앱 주소를 붙여넣어 주세요. /exec로 끝나는 주소예요'; return; }
+  if (!pin) { err.textContent = '비밀번호를 적어주세요'; return; }
+  btn.disabled = true; btn.textContent = '연결하는 중…';
+  try {
+    await api('load', {}, { url, pin });
+    LS.set('gb2_cfg', { url, pin }); history.replaceState(null, '', location.pathname); start();
+  } catch (e) { err.textContent = e.message; }
+  finally { btn.disabled = false; btn.textContent = '연결하기'; }
+};
+$('#sPin').addEventListener('keydown', e => { if (e.key === 'Enter') $('#sGo').click(); });
+if (cfg()) start(); else showSetup();
+</script>
+</body>
+</html>
