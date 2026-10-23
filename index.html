@@ -194,6 +194,11 @@ a{color:inherit;text-decoration:none}
 .emo-pick{display:flex;flex-wrap:wrap;gap:2px;margin-top:8px}
 .emo-pick button{width:38px;height:38px;border-radius:10px;font-size:21px}
 .emo-pick button:active{background:var(--soft)}
+.wipe-month{display:flex;align-items:center;justify-content:center;gap:6px;margin:8px 0 2px}
+.wipe-month b{font-family:var(--cute);font-size:21px;font-weight:400;min-width:120px;text-align:center}
+.wipe-row{cursor:pointer}
+.wipe-row input{width:22px;height:22px;accent-color:var(--warn);flex:none;margin:0}
+.btn.danger-fill{background:var(--warn);color:#fff;flex:1}
 .x{width:32px;height:32px;border-radius:50%;color:var(--muted);font-size:15px;flex:none}
 .x:active{background:var(--soft)}
 
@@ -764,6 +769,7 @@ function openSettings() {
     <div class="list" style="margin-top:20px">
       ${sheetUrl ? `<a class="row" href="${esc(sheetUrl)}" target="_blank" rel="noopener"><span class="ico">📗</span><span class="mid"><b>구글 시트에서 보기</b><small>모든 기록이 여기에 저장돼요</small></span></a>` : ''}
       <button class="row" id="sLink"><span class="ico">🔗</span><span class="mid"><b>배우자 폰 연결 링크 복사</b><small>링크를 열고 비밀번호만 넣으면 연결돼요</small></span></button>
+      <button class="row" id="sWipe"><span class="ico">🧹</span><span class="mid"><b>월별 기록 지우기</b><small>한 달 기록을 골라서 한 번에 지워요</small></span></button>
       <button class="row" id="sOut"><span class="ico">🔌</span><span class="mid"><b>이 폰에서 연결 끊기</b><small>기록은 시트에 그대로 남아요</small></span></button>
     </div>`, () => {
     $('#sSave').onclick = () => {
@@ -777,7 +783,33 @@ function openSettings() {
         .then(() => toast('링크를 복사했어요. 카톡으로 보내주세요'))
         .catch(() => prompt('이 링크를 복사해서 보내주세요', link));
     };
+    $('#sWipe').onclick = () => wipeSheet(M);
     $('#sOut').onclick = () => { if (confirm('이 폰에서 연결을 끊을까요?')) { ['gb2_cfg', 'gb2_cache', 'gb2_me', 'gb2_sheet'].forEach(LS.del); location.reload(); } };
+  });
+}
+function wipeSheet(m) {
+  const groups = [
+    { k: 'deposits', label: '통장에 넣은 돈', items: D.deposits.filter(d => d.month === m), op: x => del('deposits', x.id) },
+    { k: 'loanPays', label: '대출 납부 체크', hint: '지우면 그만큼 잔금이 다시 늘어나요', items: D.loanPays.filter(x => x.month === m), op: x => del('loanPays', x.key) },
+    { k: 'ledger', label: '가계부 기록', items: ledgerOf(m), op: x => del('ledger', x.id) },
+    { k: 'incomeMonth', label: '이 달만 바꾼 수입 금액', hint: '평소 금액으로 돌아가요', items: D.incomeMonth.filter(r => r.month === m), op: x => del('incomeMonth', x.key) }
+  ];
+  const total = groups.reduce((s, g) => s + g.items.length, 0);
+  openSheet(`<h2>월별 기록 지우기</h2>
+    <div class="wipe-month"><button class="icon-btn" id="wPrev" aria-label="이전 달">‹</button><b>${mLabel(m)}</b><button class="icon-btn" id="wNext" aria-label="다음 달">›</button></div>
+    <p class="hint" style="text-align:center;margin-bottom:8px">수입, 통장, 대출 항목은 그대로 두고 이 달에 남긴 기록만 지워요.</p>
+    <div class="list">${groups.map(g => `<label class="row wipe-row"><input type="checkbox" data-g="${g.k}" ${g.items.length ? 'checked' : 'disabled'}>
+      <span class="mid"><b>${g.label}</b><small>${g.items.length ? `${g.items.length}건${g.hint ? `, ${g.hint}` : ''}` : '기록 없음'}</small></span></label>`).join('')}</div>
+    <div class="actions"><button class="btn danger-fill" id="wGo" ${total ? '' : 'disabled'}>${total ? '선택한 기록 지우기' : '지울 기록이 없어요'}</button></div>`, body => {
+    $('#wPrev').onclick = () => wipeSheet(shiftMonth(m, -1));
+    $('#wNext').onclick = () => wipeSheet(shiftMonth(m, 1));
+    $('#wGo').onclick = () => {
+      const chosen = groups.filter(g => $(`[data-g="${g.k}"]`, body).checked && g.items.length);
+      const ops = chosen.flatMap(g => g.items.map(g.op));
+      if (!ops.length) return toast('지울 기록을 골라주세요', true);
+      if (!confirm(`${mLabel(m)} 기록 ${ops.length}건을 지울까요?\n(${chosen.map(g => g.label).join(', ')})\n\n앱에서는 되돌릴 수 없어요.`)) return;
+      closeSheet(); save(ops, `${mLabel(m)} 기록 ${ops.length}건을 지웠어요`);
+    };
   });
 }
 function pickMe() {
